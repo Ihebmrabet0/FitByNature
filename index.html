@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script>
+        // Supabase credentials
+        const supabaseUrl = "https://yjxfinbksmgnxtvtgnyt.supabase.co";
+        const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqeGZpbmJrc21nbnh0dnRnbnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU4NDMzNTgsImV4cCI6MjA1MTQxOTM1OH0.43JD-P3YVmXZZV00_6TVD8w4pm0PQL8PXuq3xUzGU00";
+
+        const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+        async function redirectWithTracking() {
+            // Extract the affiliate parameter from the URL
+            const params = new URLSearchParams(window.location.search);
+            const affiliate = params.get('affiliate');
+
+            if (affiliate) {
+                try {
+                    // Check if the affiliate exists in the table
+                    const { data, error } = await supabase
+                        .from('your_table_name') // Replace with your table name
+                        .select('*')
+                        .eq('name', affiliate)
+                        .single();
+
+                    if (error) {
+                        console.error('Error fetching affiliate:', error.message);
+                    } else if (data) {
+                        // Increment the uses field
+                        await supabase
+                            .from('your_table_name') // Replace with your table name
+                            .update({ uses: data.uses + 1 })
+                            .eq('name', affiliate);
+                    }
+                } catch (err) {
+                    console.error('Error updating affiliate uses:', err.message);
+                }
+            }
+
+            // Redirect to the WhatsApp link
+            const whatsappLink = "https://wa.me/message/ORJSKJ2EJOIQP1";
+            window.location.href = whatsappLink;
+        }
+
+        redirectWithTracking();
+    </script>
+</head>
+<body>
+    <p>Redirecting to WhatsApp...</p>
+</body>
+</html>
