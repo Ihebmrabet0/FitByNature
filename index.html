@@ -4,24 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redirecting...</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script>
-        // Ensure Supabase is declared in the correct scope
-        let supabase;
-
-        // Initialize Supabase
-        function initializeSupabase() {
-            const supabaseUrl = "https://yjxfinbksmgnxtvtgnyt.supabase.co";
-            const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqeGZpbmJrc21nbnh0dnRnbnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU4NDMzNTgsImV4cCI6MjA1MTQxOTM1OH0.43JD-P3YVmXZZV00_6TVD8w4pm0PQL8PXuq3xUzGU00";
-
-            supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
-        }
+        const supabaseUrl = "https://yjxfinbksmgnxtvtgnyt.supabase.co";
+        const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqeGZpbmJrc21nbnh0dnRnbnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU4NDMzNTgsImV4cCI6MjA1MTQxOTM1OH0.43JD-P3YVmXZZV00_6TVD8w4pm0PQL8PXuq3xUzGU00";
 
         async function redirectWithTracking() {
             try {
-                // Initialize Supabase
-                initializeSupabase();
-
                 // Extract the affiliate parameter from the URL
                 const params = new URLSearchParams(window.location.search);
                 const affiliate = params.get('affiliate');
@@ -29,26 +17,39 @@
                 if (affiliate) {
                     console.log("Checking affiliate:", affiliate);
 
-                    // Check if the affiliate exists in the database
-                    const { data, error } = await supabase
-                        .from('Affiliate') // Replace with your actual table name
-                        .select('*')
-                        .eq('name', affiliate)
-                        .single();
+                    // Fetch the affiliate from the database
+                    const response = await fetch(`${supabaseUrl}/rest/v1/Affiliate?name=eq.${affiliate}`, {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "apikey": supabaseAnonKey,
+                            "Authorization": `Bearer ${supabaseAnonKey}`
+                        }
+                    });
 
-                    if (error) {
-                        console.warn("Affiliate not found or another error occurred:", error.message);
-                    } else if (data) {
-                        // Increment the uses field
-                        const { error: updateError } = await supabase
-                            .from('Affiliate') // Replace with your actual table name
-                            .update({ uses: data.uses + 1 })
-                            .eq('name', affiliate);
+                    const data = await response.json();
 
-                        if (updateError) {
-                            console.error("Error updating uses:", updateError.message);
-                        } else {
+                    if (data.length === 0) {
+                        console.warn("Affiliate not found in the database.");
+                    } else {
+                        const affiliateData = data[0];
+                        console.log("Affiliate data:", affiliateData);
+
+                        // Increment the `uses` field
+                        const updateResponse = await fetch(`${supabaseUrl}/rest/v1/Affiliate?id=eq.${affiliateData.id}`, {
+                            method: "PATCH",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "apikey": supabaseAnonKey,
+                                "Authorization": `Bearer ${supabaseAnonKey}`
+                            },
+                            body: JSON.stringify({ uses: affiliateData.uses + 1 })
+                        });
+
+                        if (updateResponse.ok) {
                             console.log("Uses incremented successfully for affiliate:", affiliate);
+                        } else {
+                            console.error("Error updating uses:", await updateResponse.text());
                         }
                     }
                 }
@@ -61,7 +62,7 @@
             }
         }
 
-        // Call the function on load
+        // Call the function on page load
         redirectWithTracking();
     </script>
 </head>
