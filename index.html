@@ -6,20 +6,22 @@
     <title>Redirecting...</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script>
-        // Supabase credentials
+        // Ensure Supabase is initialized properly
         const supabaseUrl = "https://yjxfinbksmgnxtvtgnyt.supabase.co";
         const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqeGZpbmJrc21nbnh0dnRnbnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU4NDMzNTgsImV4cCI6MjA1MTQxOTM1OH0.43JD-P3YVmXZZV00_6TVD8w4pm0PQL8PXuq3xUzGU00";
 
         const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
 
         async function redirectWithTracking() {
-            // Extract the affiliate parameter from the URL
-            const params = new URLSearchParams(window.location.search);
-            const affiliate = params.get('affiliate');
+            try {
+                // Extract the affiliate parameter from the URL
+                const params = new URLSearchParams(window.location.search);
+                const affiliate = params.get('affiliate');
 
-            if (affiliate) {
-                try {
-                    // Check if the affiliate exists in the table
+                if (affiliate) {
+                    console.log("Checking affiliate:", affiliate);
+
+                    // Check if the affiliate exists in the database
                     const { data, error } = await supabase
                         .from('Affiliate')
                         .select('*')
@@ -27,22 +29,28 @@
                         .single();
 
                     if (error) {
-                        console.error('Error fetching affiliate:', error.message);
+                        console.warn("Affiliate not found or another error occurred:", error.message);
                     } else if (data) {
                         // Increment the uses field
-                        await supabase
-                            .from('Affiliate')
+                        const { error: updateError } = await supabase
+                            .from('Affiliate') // Replace with your actual table name
                             .update({ uses: data.uses + 1 })
                             .eq('name', affiliate);
-                    }
-                } catch (err) {
-                    console.error('Error updating affiliate uses:', err.message);
-                }
-            }
 
-            // Redirect to the WhatsApp link
-            const whatsappLink = "https://wa.me/message/ORJSKJ2EJOIQP1";
-            window.location.href = whatsappLink;
+                        if (updateError) {
+                            console.error("Error updating uses:", updateError.message);
+                        } else {
+                            console.log("Uses incremented successfully for affiliate:", affiliate);
+                        }
+                    }
+                }
+
+                // Redirect to the WhatsApp link
+                const whatsappLink = "https://wa.me/message/ORJSKJ2EJOIQP1";
+                window.location.href = whatsappLink;
+            } catch (err) {
+                console.error("An unexpected error occurred:", err.message);
+            }
         }
 
         redirectWithTracking();
