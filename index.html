@@ -6,14 +6,22 @@
     <title>Redirecting...</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script>
-        // Ensure Supabase is initialized properly
-        const supabaseUrl = "https://yjxfinbksmgnxtvtgnyt.supabase.co";
-        const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqeGZpbmJrc21nbnh0dnRnbnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU4NDMzNTgsImV4cCI6MjA1MTQxOTM1OH0.43JD-P3YVmXZZV00_6TVD8w4pm0PQL8PXuq3xUzGU00";
+        // Ensure Supabase is declared in the correct scope
+        let supabase;
 
-        const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+        // Initialize Supabase
+        function initializeSupabase() {
+            const supabaseUrl = "https://yjxfinbksmgnxtvtgnyt.supabase.co";
+            const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqeGZpbmJrc21nbnh0dnRnbnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU4NDMzNTgsImV4cCI6MjA1MTQxOTM1OH0.43JD-P3YVmXZZV00_6TVD8w4pm0PQL8PXuq3xUzGU00";
+
+            supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+        }
 
         async function redirectWithTracking() {
             try {
+                // Initialize Supabase
+                initializeSupabase();
+
                 // Extract the affiliate parameter from the URL
                 const params = new URLSearchParams(window.location.search);
                 const affiliate = params.get('affiliate');
@@ -23,7 +31,7 @@
 
                     // Check if the affiliate exists in the database
                     const { data, error } = await supabase
-                        .from('Affiliate')
+                        .from('Affiliate') // Replace with your actual table name
                         .select('*')
                         .eq('name', affiliate)
                         .single();
@@ -53,6 +61,7 @@
             }
         }
 
+        // Call the function on load
         redirectWithTracking();
     </script>
 </head>
